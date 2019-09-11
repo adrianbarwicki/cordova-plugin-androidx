@@ -22,26 +22,30 @@ function run() {
         throw("Failed to load dependencies: " + e.toString());
     }
 
+    try {
+        fs.accessSync(gradlePropertiesPath, fs.constants.F_OK);
+    } catch (doesNotExist) {
+        fs.closeSync(fs.openSync(gradlePropertiesPath, 'w'));
+        log("gradle.properties file not found, created empty one!");
+    }
+
     var gradleProperties = fs.readFileSync(gradlePropertiesPath);
 
-    if (gradleProperties) {
-        var updatedGradleProperties = false;
-        gradleProperties = gradleProperties.toString();
-        if(!gradleProperties.match(enableAndroidX)){
-            gradleProperties += "\n" + enableAndroidX;
-            updatedGradleProperties = true;
-        }
-        if(!gradleProperties.match(enableJetifier)){
-            gradleProperties += "\n" + enableJetifier;
-            updatedGradleProperties = true;
-        }
-        if(updatedGradleProperties){
-            fs.writeFileSync(gradlePropertiesPath, gradleProperties, 'utf8');
-            log("Updated gradle.properties to enable AndroidX");
-        }
-    }else{
-        log("gradle.properties file not found!")
+    var updatedGradleProperties = false;
+    gradleProperties = gradleProperties.toString();
+    if(!gradleProperties.match(enableAndroidX)){
+        gradleProperties += "\n" + enableAndroidX;
+        updatedGradleProperties = true;
     }
+    if(!gradleProperties.match(enableJetifier)){
+        gradleProperties += "\n" + enableJetifier;
+        updatedGradleProperties = true;
+    }
+    if(updatedGradleProperties){
+        fs.writeFileSync(gradlePropertiesPath, gradleProperties, 'utf8');
+        log("Updated gradle.properties to enable AndroidX");
+    }
+
     deferral.resolve();
 }
 
